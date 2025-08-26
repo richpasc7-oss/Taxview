@@ -1,0 +1,121 @@
+openapi: 3.1.0
+info:
+  title: TaxAnalystPro API
+  description: >
+    An expert tax analysis assistant focused on S-Corp taxation, buyout structuring, and federal/state tax planning with emphasis on Virginia law.
+    This API enables structured input and detailed output for scenarios involving S-Corp distributions, PTET calculations, retirement strategy modeling,
+    and multi-year transaction tax optimization.
+  version: 1.0.0
+servers:
+  - url: https://taxanalystpro.api
+    description: Main API server (hypothetical)
+paths:
+  /analyze-scorp:
+    post:
+      operationId: analyzeScorpScenario
+      summary: Analyze S-Corp buyout or income scenario
+      description: >
+        Accepts detailed input for S-Corp structure including income types, states, buyout details, and retirement contributions.
+        Returns a comprehensive analysis with effective rates, optimization scenarios, and authority citations.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scenarioType:
+                  type: string
+                  enum: [buyout, annualIncome, retirementPlanning]
+                  description: Type of analysis scenario.
+                buyoutAmount:
+                  type: number
+                  description: Total buyout amount in USD (required for buyout scenarios)
+                buyoutYears:
+                  type: integer
+                  description: Number of years over which the buyout occurs
+                annualIncome:
+                  type: number
+                  description: Annual consulting or S-Corp income
+                state:
+                  type: string
+                  enum: [NY, VA, Other]
+                  description: Primary state for tax residency
+                w2Percentage:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                  description: Proportion of income treated as W-2 salary (0.6 = 60%)
+                capitalGainShift:
+                  type: object
+                  properties:
+                    amount:
+                      type: number
+                    fromYear:
+                      type: integer
+                    toYear:
+                      type: integer
+                  description: Optional capital gain reallocation scenario
+                businessExpenses:
+                  type: number
+                  description: Annual deductible business expenses
+                retirementPlan:
+                  type: string
+                  enum: [Solo401k, SEPIRA, None]
+                  description: Selected retirement plan type
+                ptetOptIn:
+                  type: boolean
+                  description: Whether the entity has opted into PTET (Pass-Through Entity Tax)
+                niitApplicable:
+                  type: boolean
+                  description: Whether NIIT (Net Investment Income Tax) applies
+              required:
+                - scenarioType
+                - state
+      responses:
+        '200':
+          description: Detailed tax analysis report
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  executiveSummary:
+                    type: string
+                    description: Summary of findings
+                  yearByYearBreakdown:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        year:
+                          type: integer
+                        grossIncome:
+                          type: number
+                        totalTaxes:
+                          type: number
+                        netIncome:
+                          type: number
+                        effectiveRate:
+                          type: number
+                  reconciliation:
+                    type: object
+                    properties:
+                      totalGross:
+                        type: number
+                      totalTax:
+                        type: number
+                      totalNet:
+                        type: number
+                      discrepancyFlag:
+                        type: boolean
+                        description: True if calculated net doesn't match input claims
+                  citations:
+                    type: array
+                    items:
+                      type: string
+                      description: Relevant tax law references (IRC, IRS pubs, state code)
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
